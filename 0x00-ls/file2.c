@@ -22,23 +22,22 @@ int main(int argc, char *argv[])
 	else
 	{
 		dp = opendir(argv[1]);
-		errno = 0;
 		if (dp == NULL)
 		{
-			switch (errno)
-			{
-				case EACCES:
-					printf("Permission denied\n");
-					break;
-				case ENOENT:
-					printf("Directory does not exist\n");
-					break;
-				case ENOTDIR:
-					printf("'%s' is not a directory\n", argv[1]);
-					break;
-			}
-		exit(EXIT_FAILURE);
+		switch (errno)
+		{
+			case EACCES:
+				printf("Permission denied\n");
+				break;
+			case ENOENT:
+				printf("Directory does not exist\n");
+				break;
+			case ENOTDIR:
+				printf("'%s' is not a directory\n", argv[1]);
+				break;
 		}
+		exit(EXIT_FAILURE);
+	}
 	}
 	while ((dirp = readdir(dp)) != NULL)
 		printf("%s\n", dirp->d_name);
