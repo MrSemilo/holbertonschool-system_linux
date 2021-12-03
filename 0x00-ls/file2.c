@@ -42,5 +42,6 @@ int main(int argc, char *argv[])
 	}
 	while ((dirp = readdir(dp)) != NULL)
 		printf("%s\n", dirp->d_name);
+	closedir(dp);
 	exit(EXIT_SUCCESS);
 }
