@@ -1,34 +1,26 @@
-#include "laps.h"
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#include "_getline.h"
 
 /**
- * main - function main.
- * Return: return 0.
+ * main - entry point.
+ *
+ * Return: always 0.
  */
-int main()
+int main(void)
 {
-    int ids1[3] = {1, 42, 101};
-    int ids2[1] = {11};
+    int fd;
+    char *line;
 
-    race_state(ids1, 3);
-    printf("--\n");
-    race_state(ids1, 3);
-    printf("--\n");
-    race_state(ids1, 3);
-    printf("--\n");
-    race_state(ids2, 1);
-    printf("--\n");
-    race_state(ids1, 3);
-    printf("--\n");
-    race_state(ids2, 1);
-    printf("--\n");
-    race_state(ids1, 3);
-    printf("--\n");
-    race_state(ids2, 1);
-    printf("--\n");
-    race_state(ids1, 3);
-    printf("--\n");
-    race_state(ids2, 1);
-    printf("--\n");
-    race_state(NULL, 0);
+    fd = open("0-main.c", 0);
+    while ((line = _getline(fd)))
+    {
+        printf("%s\n", line);
+        free(line);
+    }
+    close(fd);
     return (0);
 }
