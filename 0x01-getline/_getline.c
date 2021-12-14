@@ -1,7 +1,7 @@
 #include "_getline.h"
 
 /**
- * _getline - _getline  
+ * _getline - _getline
  * @fd:	fd
  * Return: reyutn
  **/
@@ -52,7 +52,7 @@ char *_getline(const int fd)
 /**
  * _line - _line
  * @rd: rd
- * Return: return 
+ * Return: return
  **/
 char *_line(reader_t *rd)
 {

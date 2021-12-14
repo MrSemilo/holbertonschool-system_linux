@@ -10,7 +10,7 @@
 #define READ_SIZE 1024
 
 /**
- * struct  reader_s - readers
+ * struct reader_s - readers
  *
  * @fd: fd
  * @buf: buf
