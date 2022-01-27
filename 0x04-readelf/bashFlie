@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+readelf -W -h "$1"
