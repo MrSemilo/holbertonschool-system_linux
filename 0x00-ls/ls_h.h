@@ -12,8 +12,12 @@
 #include <sys/types.h>
 
 void libre(int sigint);
-int fun1(char **token, char argc);
+int fun();
+int fun1(char **token);
 int fun2(char **token);
+int fun3(char **token, char argc);
+int fun4(char **token, char argc);
 void error(char **token);
+int filtro(int argc, char **argv);
 
 #endif
