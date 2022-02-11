@@ -25,3 +25,4 @@ LIBS = $(patsubst %.c, %.o, shared.c)
 
 clean:
 	rm -f $(OBJS) *-hreadelf
+	
