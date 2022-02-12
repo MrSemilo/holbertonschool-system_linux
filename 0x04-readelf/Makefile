@@ -1,28 +1,31 @@
+# Make file for shell v2 project at Holberton school
+# List of variables
+SHELL = /bin/bash
 CC = gcc
 CFLAGS = -Wall -Werror -Wextra -pedantic -std=gnu89 -g
+# Find all c files in current directory and substitute
+# extension with object files (.o)
+# OBJ = $(patsubst %.c,%.o, $(wildcard *.c))
+HEADERS = $(wildcard *.h)
+LINTER = betty
 
-SRC = $(wildcard *.c)
-OBJS = $(patsubst %.c, %.o, $(SRC))
-LIBS = $(patsubst %.c, %.o, shared.c)
-0 = $(patsubst %.c, %.o, $(wildcard 0-*.c)) $(LIBS)
-1 = $(patsubst %.c, %.o, $(wildcard 1-*.c)) $(LIBS)
-2 = $(patsubst %.c, %.o, $(wildcard 2-*.c)) $(LIBS)
-100 = $(patsubst %.c, %.o, $(wildcard 100-*.c)) $(LIBS)
+# Compile object files only when they are modified,
+# It's implicitly compiled
+# %.o: %.c
+# 	$(CC) -c $< $(CFLAGS)
+FILES_0 = 0-hreadelf.o elf_header.o elf_header_2.o elf_header_3.o elf_header_4.o
+FILES_1 = 1-hreadelf.o elf_section.o elf_section_2.o elf_section_3.o
+FILES_2 = 2-hreadelf.o elf_program_header_1.o elf_program_header_2.o elf_program_header_3.o elf_program_header_4.o elf_program_header_5.o elf_section.o elf_section_2.o elf_section_3.o
 
-.PHONY: 0-hreadelf 1-hreadelf 2-hreadelf 100-hreadelf clean
+0-hreadelf: utils.c $(FILES_0) $(HEADERS)
 
-0-hreadelf: $(0)
-	$(CC) $(CFLAGS) $(0) -o 0-hreadelf
+1-hreadelf:  utils_2.c utils.c $(FILES_1) $(HEADERS)
 
-1-hreadelf: $(1)
-	$(CC) $(CFLAGS) $(1) -o 1-hreadelf
+2-hreadelf: utils.c utils_2.c $(FILES_2) $(HEADERS)
 
-2-hreadelf: $(2)
-	$(CC) $(CFLAGS) $(2) -o 2-hreadelf
+100-hreadelf: 100-hreadelf.o utils_2.c utils.c $(HEADERS)
 
-100-hreadelf: $(100)
-	$(CC) $(CFLAGS) $(100) -o 100-hreadelf
+.PHONY: clean, check, memcheck, memfull
 
 clean:
-	rm -f $(OBJS) *-hreadelf
-	
+	rm -f *.o 0-hreadelf 1-hreadelf 2-hreadelf 100-hreadelf
