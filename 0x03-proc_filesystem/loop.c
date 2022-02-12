@@ -23,5 +23,5 @@ int main(void)
 		printf("[%lu] [pid: %d] %s [%p]\n", i, pid, str, &str);
 		sleep(1);
 	}
-	return 0;
+	return (0);
 }
