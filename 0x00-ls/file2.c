@@ -5,7 +5,7 @@
 *
 */
 
-int fun()
+int fun(void)
 {
 	DIR *dp;
 	struct dirent *dirp;
@@ -15,7 +15,8 @@ int fun()
 	{
 		while ((dirp = readdir(dp)) != NULL)
 		{
-			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 || (*dirp->d_name) == '.'))
+			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
+				(*dirp->d_name) == '.'))
 			{
 			}
 			else
@@ -31,7 +32,6 @@ int fun()
 
 /**
 * fun1 - Funtionn.
-* @argc: argument
 * @token: argument
 * Return:_return
 *
@@ -50,7 +50,8 @@ int fun1(char **token)
 	{
 		while ((dirp = readdir(dp)) != NULL)
 		{
-			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 || (*dirp->d_name) == '.'))
+			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
+				(*dirp->d_name) == '.'))
 			{
 			}
 			else
@@ -78,17 +79,14 @@ int fun2(char **token)
 	dp = opendir(token[2]);
 	if (dp != NULL)
 	{
-		/* code */
 		printf("%s:\n", token[2]);
 		while ((dirp = readdir(dp)) != NULL)
 		{
-			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 || (*dirp->d_name) == '.'))
-			{
-			}
+			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
+				(*dirp->d_name) == '.'))
+			{ }
 			else
-			{
 				printf("%s ", dirp->d_name);
-			}
 		}
 		printf("\n");
 	}
@@ -96,22 +94,18 @@ int fun2(char **token)
 		printf("%s\n", token[2]);
 	closedir(dp);
 
-
 	pd = opendir(token[1]);
 	if (pd != NULL)
 	{
-		/* code */
 		printf("\n");
 		printf("%s:\n", token[1]);
 		while ((dip = readdir(pd)) != NULL)
 		{
-			if ((strcmp(dip->d_name, ".") == 0 || strcmp(dip->d_name, "..") == 0 || (*dip->d_name) == '.'))
-			{
-			}
+			if ((strcmp(dip->d_name, ".") == 0 || strcmp(dip->d_name, "..") == 0 ||
+				(*dip->d_name) == '.'))
+			{ }
 			else
-			{
 				printf("%s ", dip->d_name);
-			}
 		}
 		printf("\n");
 	}
@@ -121,25 +115,30 @@ int fun2(char **token)
 	exit(EXIT_SUCCESS);
 }
 
+/**
+* fun3 - Funtionn.
+* @argc: argument
+* @token: argument
+* Return:_return
+*
+*/
 int fun3(char **token, char argc)
 {
 	DIR *dp;
 	struct dirent *dirp;
 
 	if (argc != 4 && argc == 3)
-	{
 		dp = opendir(token[1]);
-	}	
-	if(argc != 3 && argc == 2)
-	{
+
+	if (argc != 3 && argc == 2)
 		dp = opendir(".");
-	}
-	
+
 	if (dp != NULL)
 	{
 		while ((dirp = readdir(dp)) != NULL)
 		{
-			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 || (*dirp->d_name) == '.'))
+			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
+				(*dirp->d_name) == '.'))
 			{
 			}
 			else
@@ -152,7 +151,13 @@ int fun3(char **token, char argc)
 	exit(EXIT_SUCCESS);
 }
 
-
+/**
+* fun4 - Funtionn.
+* @argc: argument
+* @token: argument
+* Return:_return
+*
+*/
 int fun4(char **token, char argc)
 {
 	DIR *dp;
@@ -172,27 +177,4 @@ int fun4(char **token, char argc)
 	}
 	closedir(dp);
 	exit(EXIT_SUCCESS);
-}
-
-/**
-* error - Error.
-* @token: argument
-* Return:_return
-*
-*/
-void error(char **token)
-{
-	switch (errno)
-	{
-	case EACCES:
-		perror("Permission denied\n");
-		break;
-	case ENOENT:
-		perror("Directory does not exist\n");
-		break;
-	case ENOTDIR:
-		printf("%s\n", token[1]);
-		break;
-	}
-	exit(EXIT_FAILURE);
 }
