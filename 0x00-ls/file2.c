@@ -1,180 +1,183 @@
 #include "ls_h.h"
-/**
-* fun - Funtionn.
-* Return:_return
-*
-*/
 
-int fun(void)
-{
-	DIR *dp;
-	struct dirent *dirp;
-
-	dp = opendir(".");
-	if (dp != NULL)
-	{
-		while ((dirp = readdir(dp)) != NULL)
-		{
-			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
-				(*dirp->d_name) == '.'))
-			{
-			}
-			else
-			{
-				printf("%s ", dirp->d_name);
-			}
-		}
-		printf("\n");
-	}
-	closedir(dp);
-	exit(EXIT_SUCCESS);
-}
+static bool printed;
+static size_t status;
+static struct option *opt;
 
 /**
-* fun1 - Funtionn.
-* @token: argument
-* Return:_return
-*
-*/
-
-int fun1(char **token)
+ * printcontent - prints and formats content
+ * @entries: pointer content entries to print
+ * @c: count of entries
+ * @fc: file count
+ * @dc: directory count
+ * @erc: error count
+ * @dir: directory to print
+ * @printed: if printfile was called
+ *
+ * Return: true after print
+ */
+bool printcontent(struct content *entries, size_t c, size_t fc, size_t dc,
+		size_t erc, char *dir, bool printed)
 {
-	DIR *dp;
-	struct dirent *dirp;
+	size_t i;
+	static bool start;
 
-	dp = opendir(token[1]);
-	if (token[2])
-		fun2(token);
-
-	if (dp != NULL)
-	{
-		while ((dirp = readdir(dp)) != NULL)
-		{
-			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
-				(*dirp->d_name) == '.'))
-			{
-			}
-			else
-			{
-				printf("%s ", dirp->d_name);
-			}
-		}
-		printf("\n");
-	}
-	closedir(dp);
-	exit(EXIT_SUCCESS);
-}
-
-/**
-* fun2 - Funtionn.
-* @token: argument
-* Return:_return
-*
-*/
-int fun2(char **token)
-{
-	DIR *dp, *pd;
-	struct dirent *dirp, *dip;
-
-	dp = opendir(token[2]);
-	if (dp != NULL)
-	{
-		printf("%s:\n", token[2]);
-		while ((dirp = readdir(dp)) != NULL)
-		{
-			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
-				(*dirp->d_name) == '.'))
-			{ }
-			else
-				printf("%s ", dirp->d_name);
-		}
-		printf("\n");
-	}
+	if (!opt->rev)
+		_qsort(entries, 0, c - 1, cmpstringp);
 	else
-		printf("%s\n", token[2]);
-	closedir(dp);
-
-	pd = opendir(token[1]);
-	if (pd != NULL)
+		_qsort(entries, 0, c - 1, revstringp);
+	if (fc + dc + erc > 1)
 	{
-		printf("\n");
-		printf("%s:\n", token[1]);
-		while ((dip = readdir(pd)) != NULL)
-		{
-			if ((strcmp(dip->d_name, ".") == 0 || strcmp(dip->d_name, "..") == 0 ||
-				(*dip->d_name) == '.'))
-			{ }
-			else
-				printf("%s ", dip->d_name);
-		}
-		printf("\n");
+		if (start || printed)
+			printf("\n");
+		printf("%s:\n", dir);
 	}
-	else
-		printf("%s\n", token[1]);
-	closedir(pd);
-	exit(EXIT_SUCCESS);
+	start = false;
+	for (i = 0; i < c; ++i)
+	{
+		if (start)
+			!opt->perline ? printf("  ") : printf("\n");
+		printf("%s", entries[i].name);
+		start = true;
+	}
+	printf("\n");
+	return (true);
 }
 
 /**
-* fun3 - Funtionn.
-* @argc: argument
-* @token: argument
-* Return:_return
-*
-*/
-int fun3(char **token, char argc)
+ * readcontents - reads contents of directory and populates entries
+ * @dp: pointer to a directory stream
+ * @entries: pointer to a pointer of content entries to read
+ * @dirs: pointer to directories to read
+ * @ec: pointer to entry count
+ * @dc: directory count
+ * @i: current index
+ * @entsiz: size of entries
+ *
+ * Return: true if successful read otherwise false
+ */
+bool readcontents(DIR *dp, struct content **entries, struct content *dirs,
+		size_t *ec, size_t dc, size_t i, size_t *entsiz)
 {
-	DIR *dp;
-	struct dirent *dirp;
+	struct dirent *ep;
 
-	if (argc != 4 && argc == 3)
-		dp = opendir(token[1]);
-
-	if (argc != 3 && argc == 2)
-		dp = opendir(".");
-
-	if (dp != NULL)
+	if (dc > 0)
 	{
-		while ((dirp = readdir(dp)) != NULL)
+		dp = opendir(dirs[i].name);
+		if (!dp)
 		{
-			if ((strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
-				(*dirp->d_name) == '.'))
-			{
-			}
-			else
-			{
-				printf("%s\n", dirp->d_name);
-			}
+			status = error(dirs[i].name, '\0', false, printed);
+			printed = false;
+			return (false);
 		}
 	}
+	while ((ep = readdir(dp)))
+	{
+		if (filterhidden(ep, opt))
+			continue;
+		_strcpy((*entries)[*ec].name, ep->d_name);
+		if (opt->longfmt)
+			linfo(dirs[i].name, &(*entries)[*ec]);
+		++*ec;
+		if (*ec == *entsiz)
+		{
+			*entsiz *= 2;
+			*entries = realloc(*entries, *entsiz * sizeof(**entries));
+		}
+
+	}
 	closedir(dp);
-	exit(EXIT_SUCCESS);
+	return (true);
 }
 
 /**
-* fun4 - Funtionn.
-* @argc: argument
-* @token: argument
-* Return:_return
-*
-*/
-int fun4(char **token, char argc)
+ * parse_args - indexes positions of valid arguments, files, and directories
+ * @argv: pointer to an array of strings to parse
+ * @fc: number of files
+ * @dc: number of directories
+ * @erc: number of errors
+ * @file_a: pointer to array to populate with file indexes
+ * @dir_a: pointer to array to populate with directory indexes
+ */
+void parse_args(char *argv[], size_t *fc, size_t *dc, size_t *erc,
+		size_t *file_a, size_t *dir_a)
 {
-	DIR *dp;
-	struct dirent *dirp;
+	size_t i, j;
+	struct stat sb;
 
-	if (argc != 4 && argc == 3)
-	{
-		dp = opendir(token[2]);
-	}
-	if (dp != NULL)
-	{
-		while ((dirp = readdir(dp)) != NULL)
+	for (i = 1; argv[i]; ++i)
+		if (*argv[i] == '-')
+			for (j = 1; argv[i][j]; ++j)
+				checkopt(&opt, argv, i, j);
+	for (i = 1; argv[i]; ++i)
+		if (lstat(argv[i], &sb) == 0)
 		{
-			printf("%s ", dirp->d_name);
+			if ((sb.st_mode & S_IFMT) == S_IFLNK)
+			{
+				if (!opt->longfmt)
+					parsesym(argv[i], fc, dc, file_a,
+							dir_a, i, sb.st_size);
+				else
+					file_a[(*fc)++] = i;
+			}
+			else if ((sb.st_mode & S_IFMT) == S_IFREG)
+			{
+				file_a[(*fc)++] = i;
+			}
+			else if ((sb.st_mode & S_IFMT) == S_IFDIR)
+			{
+				dir_a[(*dc)++] = i;
+			}
 		}
-		printf("\n");
+	for (i = 1; argv[i]; ++i)
+		if (lstat(argv[i], &sb) == -1 && (*argv[i] != '-' ||
+					_strcmp(argv[i], "-") == 0))
+		{
+			status = error(argv[i], '\0', false, printed);
+			++*erc;
+		}
+}
+
+/**
+ * ls - Lists information about files and directories
+ * @argv: pointer to an array of strings containing arguments
+ *
+ * Return: status
+ */
+size_t ls(char *argv[])
+{
+	size_t fc, dc, ec, erc, entsiz, i;
+	size_t file_a[256], dir_a[256];
+	DIR *dp;
+	struct content *entries, *dirs;
+
+	fc = dc = ec = erc = 0;
+	entsiz = 100;
+	opt = malloc(sizeof(*opt));
+	if (!opt)
+		exit(2);
+	initoptions(&opt);
+
+	parse_args(argv, &fc, &dc, &erc, file_a, dir_a);
+	status = processargs(&dirs, opt, argv, file_a, dir_a, status, &dp, fc, dc,
+			erc, &printed);
+	entries = malloc(entsiz * sizeof(*entries));
+	if (!entries)
+		exit(2);
+	for (i = 0; i < dc || (fc == 0 && dc == 0 && erc == 0); ++i)
+	{
+		if (!readcontents(dp, &entries, dirs, &ec, dc, i, &entsiz))
+			continue;
+		if (opt->longfmt)
+			plong(entries, ec, false, opt,
+					fc == 0 && dc == 0 ? "." : dirs[i].name);
+		else
+			printed = printcontent(entries, ec, fc, dc, erc,
+					dirs[i].name, printed);
+		if (fc == 0 && dc == 0)
+			break;
+		ec = 0;
 	}
-	closedir(dp);
-	exit(EXIT_SUCCESS);
+	cleanup(entries, dirs, opt);
+	return (status);
 }
