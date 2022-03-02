@@ -1,101 +1,84 @@
 #!/usr/bin/python3
 import sys
 
+''' This script changes ASCII string in heap of the process '''
 
-def mem():
-    """Overwrites search_str with contents of write_str"""
+
+def get_args():
+    '''
+    Parses arguments rand returns them
+    argv[1]: <pid>
+    argv[2]: <search_string>
+    argv[3]: <replace_string>
+    '''
+
+    pid = int(sys.argv[1])
+    search_string = sys.argv[2]
+    replace_string = sys.argv[3]
+    if len(replace_string) > len(search_string):
+        raise IndexError
+
+    return pid, search_string, replace_string
+
+
+def read_write_file(pid, search_string, replace_string):
+    '''
+    Read mem file and swap the given string
+    '''
+
+    maps_file = "/proc/{:d}/maps".format(pid)
+    mem_file = "/proc/{:d}/mem".format(pid)
+    search_word = "[heap]"
+    props_line = {"start": None, "end": None, "perms": None}
+
+    with open(maps_file, "r") as maps, open(mem_file, "rb+") as mem:
+        for line in maps:
+            if search_word in line:
+                print("[*] Found heap")
+                tmp = line.split(" ")
+                addr = tmp[0].split("-")
+                props_line["start"] = int(addr[0], 16)
+                props_line["end"] = int(addr[1], 16)
+                props_line["perms"] = tmp[1]
+                break
+
+        if props_line["perms"][:2] != "rw":
+            raise PermissionError
+
+        mem.seek(props_line["start"])
+        content = mem.read(props_line["end"] - props_line["start"])
+        idx = content.index(bytes(search_string, "ASCII"))
+        print(content)
+        print("[*] Found string")
+        print("[*] Replacing string")
+        mem.seek(props_line["start"] + idx)
+        mem.write(bytes(replace_string + "\0", "ASCII"))
+
+
+def main():
+    '''
+    Entry point of the script
+    '''
     try:
-        with open("/proc/{}/mem".format(pid), 'rb+') as mem_file:
-            mem_file.seek(addr_start)
-            heap = mem_file.read(addr_end - addr_start)
-            try:
-                i = heap.index(bytes(search_str, "ASCII"))
-            except Exception as e:
-                print(e)
-                sys.exit(1)
-            print("Found '{}' at {:x}".format(search_str, i))
-            print("Writing '{}' at {:x}".format(write_str, addr_start + i))
-            mem_file.seek(addr_start + i)
-            mem_file.write(bytes(write_str + '\0', "ASCII"))
+        exit_value = 1
+        pid, search_string, replace_string = get_args()
+        read_write_file(pid, search_string, replace_string)
+        exit_value = 0
+    # except IndexError:
+    #     print("Usage: <read_write_heap.py> pid search_string replace_string")
+    # except ValueError:
+    #     print("PID should be a valid integer greater than 0")
+    # except FileNotFoundError as e:
+    #     print(e)
+    # except ValueError:
+    #     print("Could not find the string")
+    # except PermissionError:
+    #     print("No permission")
     except Exception as e:
         print(e)
-        sys.exit(1)
+    finally:
+        exit(exit_value)
 
 
-def parse_line(line):
-    """Parses through heap information
-    Args:
-        line: contains heap information
-    Returns:
-        addr_start and addr_end for heap
-    """
-    sline = line.split(' ')
-    addr = sline[0]
-    perm = sline[1]
-    offset = sline[2]
-    device = sline[3]
-    inode = sline[4]
-    print("Found [heap]:")
-    print("\taddresses = {}".format(addr))
-    print("\tpermisions = {}".format(perm))
-    print("\toffset = {}".format(offset))
-    print("\tdevice = {}".format(device))
-    print("\tinode = {}".format(inode))
-    if perm[0] != 'r' or perm[1] != 'w':
-        print("{} does not have read/write permission".format(pathname))
-        sys.exit(1)
-    addr = addr.split('-')
-    if len(addr) != 2:
-        print("Wrong addr format")
-        sys.exit(1)
-    try:
-        addr_start = int(addr[0], 16)
-        addr_end = int(addr[1], 16)
-    except Exception as e:
-        print(e)
-        sys.exit(1)
-    print("\tAddr start [{:x}] | end [{:x}]".format(addr_start, addr_end))
-    return addr_start, addr_end
-
-
-def maps():
-    """Opens
-    """
-    try:
-        with open("/proc/{}/maps".format(pid), 'r') as maps_file:
-            for line in maps_file:
-                if line.endswith("[heap]\n"):
-                    break
-            return parse_line(line)
-    except Exception as e:
-        print(e)
-        sys.exit(1)
-
-
-def parse_argv():
-    """Parses
-    """
-    err_msg = "Usage: {} pid search write".format(sys.argv[0])
-    if len(sys.argv) != 4:
-        print(err_msg)
-        sys.exit(1)
-    try:
-        pid = int(sys.argv[1])
-    except Exception as e:
-        print(e)
-        sys.exit(1)
-    search_str = sys.argv[2]
-    write_str = sys.argv[3]
-    if pid < 1:
-        print(err_msg)
-        sys.exit(1)
-    if len(sys.argv[2]) < len(sys.argv[3]):
-        print("write_str longer than search_str")
-        sys.exit(1)
-    return pid, search_str, write_str
-
-
-if __name__ == "__main__":
-    pid, search_str, write_str = parse_argv()
-    addr_start, addr_end = maps()
-    mem()
+if __name__ == '__main__':
+    main()
