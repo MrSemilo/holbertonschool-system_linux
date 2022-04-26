@@ -3,11 +3,11 @@ CFLAGS = -Wall -Werror -Wextra -pedantic -std=c99 -ggdb3 -shared -Wl,-soname,PyL
 
 .PHONY: clean, check
 
-# libPython.so.2: 100-python.c
-# 	$(CC) $(CFLAGS) -o $@  $^
-
-libPython.so: 5-python.c
+libPython.so.2: 100-python.c
 	$(CC) $(CFLAGS) -o $@  $^
+
+# libPython.so: 5-python.c
+# 	$(CC) $(CFLAGS) -o $@  $^
 
 # libPython.so: 4-python.c
 # 	$(CC) $(CFLAGS) -o $@  $^
